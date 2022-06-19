@@ -594,6 +594,12 @@ $("#preferredHex3").spectrum({
     showPalette: true,
     palette: [["red", "rgba(0, 255, 0, .5)", "rgb(0, 0, 255)"]]
 });
+$("#preferredHex8").spectrum({
+    preferredFormat: "hex8",
+    showInput: true,
+    showPalette: true,
+    palette: [["red", "rgba(0, 255, 0, .5)", "rgb(0, 0, 255)"]]
+});
 $("#preferredHsl").spectrum({
     preferredFormat: "hsl",
     showInput: true,
@@ -623,6 +629,8 @@ $("#preferredNone").spectrum({
                     <input type='text' name='preferredHex' id='preferredHex' value='orangered' />
                     <div class='alert alert-info'>Hex (3 Characters If Possible)</div>
                     <input type='text' name='preferredHex3' id='preferredHex3' value='orangered' />
+                    <div class='alert alert-info'>Hex (With alpha channel)</div>
+                    <input type='text' name='preferredHex8' id='preferredHex8' value='orangered' />
                     <div class='alert alert-info'>Hsl</div>
                     <input type='text' name='preferredHsl' id='preferredHsl' value='orangered' />
                     <div class='alert alert-info'>Rgb</div>

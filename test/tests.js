@@ -627,11 +627,12 @@ test( "Methods work as described", function() {
   ok (color.toHslString() == "hsl(39, 100%, 50%)", "Color has been set and gotten as hsl");
   ok (
     (function() {
-      var i, argb, a;
+      var i, rgba, a;
       for (i = 0; i < 16; i++) {
-        argb = ('0' + i.toString(16) + '000000');
+
+        rgba = ('000000' + 0 + i.toString(16));
         a = Math.round(
-          el.spectrum('set', argb).spectrum('get').getAlpha() * 255
+          el.spectrum('set', rgba).spectrum('get').getAlpha() * 255
         );
         if (a != i) {
           return false;
