@@ -37,7 +37,6 @@
         togglePaletteOnly: false,
         showSelectionPalette: true,
         localStorageKey: false,
-        appendTo: "body",
         maxSelectionSize: 8,
         locale: "en",
         cancelText: "cancel",
@@ -52,16 +51,7 @@
         replacerClassName: "",
         showAlpha: true,
         theme: "sp-light",
-        palette: [
-            ["#000000","#444444","#5b5b5b","#999999","#bcbcbc","#eeeeee","#f3f6f4","#ffffff"],
-            ["#f44336","#744700","#ce7e00","#8fce00","#2986cc","#16537e","#6a329f","#c90076"],
-            ["#f4cccc","#fce5cd","#fff2cc","#d9ead3","#d0e0e3","#cfe2f3","#d9d2e9","#ead1dc"],
-            ["#ea9999","#f9cb9c","#ffe599","#b6d7a8","#a2c4c9","#9fc5e8","#b4a7d6","#d5a6bd"],
-            ["#e06666","#f6b26b","#ffd966","#93c47d","#76a5af","#6fa8dc","#8e7cc3","#c27ba0"],
-            ["#cc0000","#e69138","#f1c232","#6aa84f","#45818e","#3d85c6","#674ea7","#a64d79"],
-            ["#990000","#b45f06","#bf9000","#38761d","#134f5c","#0b5394","#351c75","#741b47"],
-            ["#660000","#783f04","#7f6000","#274e13","#0c343d","#073763","#20124d","#4c1130"]
-        ],
+        palette: [],
         selectionPalette: [],
         disabled: false,
         offset: null
@@ -215,7 +205,6 @@
             shiftMovementDirection = null;
 
         var doc = element.ownerDocument,
-            body = doc.body,
             boundElement = $(element),
             disabled = false,
             container = $(markup, doc).addClass(theme),
@@ -235,7 +224,6 @@
             chooseButton = container.find(".sp-choose"),
             toggleButton = container.find(".sp-palette-toggle"),
             isInput = boundElement.is("input"),
-            isInputTypeColor = isInput && boundElement.attr("type") === "color" && inputTypeColorSupport(),
             shouldReplace = isInput && type == 'color',
             replacer = (shouldReplace) ? $(replaceInput).addClass(theme).addClass(opts.className).addClass(opts.replacerClassName) : $([]),
             offsetElement = (shouldReplace) ? replacer : boundElement,
@@ -349,13 +337,7 @@
                 boundElement.after(container).hide();
             }
             else {
-
-                var appendTo = opts.appendTo === "parent" ? boundElement.parent() : $(opts.appendTo);
-                if (appendTo.length !== 1) {
-                    appendTo = $("body");
-                }
-
-                appendTo.append(container);
+                boundElement.parent().append(container);
             }
 
             updateSelectionPaletteFromStorage();
@@ -970,11 +952,8 @@
 
             if (!flat) {
                 container.css("position", "absolute");
-                if (opts.offset) {
-                    container.offset(opts.offset);
-                } else {
-                    container.offset(getOffset(container, offsetElement));
-                }
+                container.css("left", opts.left);
+                container.css("top", opts.top);
             }
 
             updateHelperLocations();
@@ -1055,47 +1034,9 @@
             destroy: destroy,
             container: container
         };
-
         spect.id = spectrums.push(spect) - 1;
 
         return spect;
-    }
-
-    /**
-    * checkOffset - get the offset below/above and left/right element depending on screen position
-    * Thanks https://github.com/jquery/jquery-ui/blob/master/ui/jquery.ui.datepicker.js
-    */
-    function getOffset(picker, input) {
-        var extraY = 0;
-        var dpWidth = picker.outerWidth();
-        var dpHeight = picker.outerHeight();
-        var inputHeight = input.outerHeight();
-        var doc = picker[0].ownerDocument;
-        var docElem = doc.documentElement;
-        var viewWidth = docElem.clientWidth + $(doc).scrollLeft();
-        var viewHeight = docElem.clientHeight + $(doc).scrollTop();
-        var offset = input.offset();
-        var offsetLeft = offset.left;
-        var offsetTop = offset.top;
-
-        offsetTop += inputHeight;
-
-        offsetLeft -=
-            Math.min(offsetLeft, (offsetLeft + dpWidth > viewWidth && viewWidth > dpWidth) ?
-            Math.abs(offsetLeft + dpWidth - viewWidth) : 0);
-
-        offsetTop -=
-            Math.min(offsetTop, ((offsetTop + dpHeight > viewHeight && viewHeight > dpHeight) ?
-            Math.abs(dpHeight + inputHeight - extraY) : extraY));
-
-        return {
-            top: offsetTop,
-            bottom: offset.bottom,
-            left: offsetLeft,
-            right: offset.right,
-            width: offset.width,
-            height: offset.height
-        };
     }
 
     /**
@@ -1228,10 +1169,6 @@
         };
     }
 
-    function inputTypeColorSupport() {
-        return $.fn.spectrum.inputTypeColorSupport();
-    }
-
     /**
     * Define a jQuery plugin
     */
@@ -1291,26 +1228,10 @@
     $.fn.spectrum.loadOpts = {};
     $.fn.spectrum.draggable = draggable;
     $.fn.spectrum.defaults = defaultOpts;
-    $.fn.spectrum.inputTypeColorSupport = function inputTypeColorSupport() {
-        if (typeof inputTypeColorSupport._cachedResult === "undefined") {
-            var colorInput = $("<input type='color'/>")[0]; // if color element is supported, value will default to not null
-            inputTypeColorSupport._cachedResult = colorInput.type === "color" && colorInput.value !== "";
-        }
-        return inputTypeColorSupport._cachedResult;
-    };
 
     $.spectrum = { };
     $.spectrum.localization = { };
     $.spectrum.palettes = { };
-
-    $.fn.spectrum.processNativeColorInputs = function () {
-        var colorInputs = $("input[type=color]");
-        if (colorInputs.length && !inputTypeColorSupport()) {
-            colorInputs.spectrum({
-                preferredFormat: "hex6"
-            });
-        }
-    };
 
     // TinyColor v1.1.2
     // https://github.com/bgrins/TinyColor
@@ -1419,11 +1340,11 @@
         toHexString: function(allow3Char) {
             return '#' + this.toHex(allow3Char);
         },
-        toHex8: function() {
-            return rgbaToHex(this._r, this._g, this._b, this._a);
+        toHex8: function(allow4Char) {
+            return rgbaToHex(this._r, this._g, this._b, this._a, allow4Char);
         },
-        toHex8String: function() {
-            return '#' + this.toHex8();
+        toHex8String: function(allow4Char) {
+            return '#' + this.toHex8(allow4Char);
         },
         toRgb: function() {
             return { r: mathRound(this._r), g: mathRound(this._g), b: mathRound(this._b), a: this._a };
@@ -1453,13 +1374,13 @@
             return hexNames[rgbToHex(this._r, this._g, this._b, true)] || false;
         },
         toFilter: function(secondColor) {
-            var hex8String = '#' + rgbaToHex(this._r, this._g, this._b, this._a);
+            var hex8String = '#' + rgbaToArgbHex(this._r, this._g, this._b, this._a);
             var secondHex8String = hex8String;
             var gradientType = this._gradientType ? "GradientType = 1, " : "";
 
             if (secondColor) {
                 var s = tinycolor(secondColor);
-                secondHex8String = s.toHex8String();
+                secondHex8String = '#' + rgbaToArgbHex(s._r, s._g, s._b, s._a);
             }
 
             return "progid:DXImageTransform.Microsoft.gradient("+gradientType+"startColorstr="+hex8String+",endColorstr="+secondHex8String+")";
@@ -1470,7 +1391,7 @@
 
             var formattedString = false;
             var hasAlpha = this._a < 1 && this._a >= 0;
-            var needsAlphaFormat = !formatSet && hasAlpha && (format === "hex" || format === "hex6" || format === "hex3" || format === "name");
+            var needsAlphaFormat = !formatSet && hasAlpha && (format === "hex" || format === "hex6" || format === "hex3" || format === "hex4" || format === "hex8" || format === "name");
 
             if (needsAlphaFormat) {
                 // Special case for "transparent", all other non-alpha formats
@@ -1491,6 +1412,9 @@
             }
             if (format === "hex3") {
                 formattedString = this.toHexString(true);
+            }
+            if (format === "hex4") {
+                formattedString = this.toHex8String(true);
             }
             if (format === "hex8") {
                 formattedString = this.toHex8String();
@@ -1805,12 +1729,32 @@
     }
         // `rgbaToHex`
         // Converts an RGBA color plus alpha transparency to hex
-        // Assumes r, g, b and a are contained in the set [0, 255]
-        // Returns an 8 character hex
-        function rgbaToHex(r, g, b, a) {
+        // Assumes r, g, b are contained in the set [0, 255] and
+        // a in [0, 1]. Returns a 4 or 8 character rgba hex
+        function rgbaToHex(r, g, b, a, allow4Char) {
 
             var hex = [
-                pad2(convertDecimalToHex(a)),
+                pad2(mathRound(r).toString(16)),
+                pad2(mathRound(g).toString(16)),
+                pad2(mathRound(b).toString(16)),
+                pad2(convertDecimalToHex(a))
+            ];
+
+            // Return a 4 character hex if possible
+            if (allow4Char && hex[0].charAt(0) == hex[0].charAt(1) && hex[1].charAt(0) == hex[1].charAt(1) && hex[2].charAt(0) == hex[2].charAt(1) && hex[3].charAt(0) == hex[3].charAt(1)) {
+                return hex[0].charAt(0) + hex[1].charAt(0) + hex[2].charAt(0) + hex[3].charAt(0);
+            }
+
+            return hex.join("");
+        }
+
+    // `rgbaToArgbHex`
+    // Converts an RGBA color to an ARGB Hex8 string
+    // Rarely used, but required for "toFilter()"
+    function rgbaToArgbHex(r, g, b, a) {
+
+        var hex = [
+            pad2(convertDecimalToHex(a)),
             pad2(mathRound(r).toString(16)),
             pad2(mathRound(g).toString(16)),
             pad2(mathRound(b).toString(16))
@@ -2343,6 +2287,7 @@
             hsva: new RegExp("hsva" + PERMISSIVE_MATCH4),
             hex3: /^([0-9a-fA-F]{1})([0-9a-fA-F]{1})([0-9a-fA-F]{1})$/,
             hex6: /^([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/,
+            hex4: /^#?([0-9a-fA-F]{1})([0-9a-fA-F]{1})([0-9a-fA-F]{1})([0-9a-fA-F]{1})$/,
             hex8: /^([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})([0-9a-fA-F]{2})$/
         };
     })();
@@ -2387,10 +2332,10 @@
         }
         if ((match = matchers.hex8.exec(color))) {
             return {
-                a: convertHexToDecimal(match[1]),
-                r: parseIntFromHex(match[2]),
-                g: parseIntFromHex(match[3]),
-                b: parseIntFromHex(match[4]),
+                r: parseIntFromHex(match[1]),
+                g: parseIntFromHex(match[2]),
+                b: parseIntFromHex(match[3]),
+                a: convertHexToDecimal(match[4]),
                 format: named ? "name" : "hex8"
             };
         }
@@ -2410,18 +2355,21 @@
                 format: named ? "name" : "hex"
             };
         }
+        if ((match = matchers.hex4.exec(color))) {
+            return {
+                r: parseIntFromHex(match[1] + '' + match[1]),
+                g: parseIntFromHex(match[2] + '' + match[2]),
+                b: parseIntFromHex(match[3] + '' + match[3]),
+                a: convertHexToDecimal(match[4] + '' + match[4]),
+                format: named ? "name" : "hex8"
+            };
+        }    
 
         return false;
     }
 
     window.tinycolor = tinycolor;
     })();
-
-    $(function () {
-        if ($.fn.spectrum.load) {
-            $.fn.spectrum.processNativeColorInputs();
-        }
-    });
 
 });
 

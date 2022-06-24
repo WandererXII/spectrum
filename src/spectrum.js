@@ -37,7 +37,6 @@
         togglePaletteOnly: false,
         showSelectionPalette: true,
         localStorageKey: false,
-        appendTo: "body",
         maxSelectionSize: 8,
         locale: "en",
         cancelText: "cancel",
@@ -52,16 +51,7 @@
         replacerClassName: "",
         showAlpha: true,
         theme: "sp-light",
-        palette: [
-            ["#000000","#444444","#5b5b5b","#999999","#bcbcbc","#eeeeee","#f3f6f4","#ffffff"],
-            ["#f44336","#744700","#ce7e00","#8fce00","#2986cc","#16537e","#6a329f","#c90076"],
-            ["#f4cccc","#fce5cd","#fff2cc","#d9ead3","#d0e0e3","#cfe2f3","#d9d2e9","#ead1dc"],
-            ["#ea9999","#f9cb9c","#ffe599","#b6d7a8","#a2c4c9","#9fc5e8","#b4a7d6","#d5a6bd"],
-            ["#e06666","#f6b26b","#ffd966","#93c47d","#76a5af","#6fa8dc","#8e7cc3","#c27ba0"],
-            ["#cc0000","#e69138","#f1c232","#6aa84f","#45818e","#3d85c6","#674ea7","#a64d79"],
-            ["#990000","#b45f06","#bf9000","#38761d","#134f5c","#0b5394","#351c75","#741b47"],
-            ["#660000","#783f04","#7f6000","#274e13","#0c343d","#073763","#20124d","#4c1130"]
-        ],
+        palette: [],
         selectionPalette: [],
         disabled: false,
         offset: null
@@ -215,7 +205,6 @@
             shiftMovementDirection = null;
 
         var doc = element.ownerDocument,
-            body = doc.body,
             boundElement = $(element),
             disabled = false,
             container = $(markup, doc).addClass(theme),
@@ -235,7 +224,6 @@
             chooseButton = container.find(".sp-choose"),
             toggleButton = container.find(".sp-palette-toggle"),
             isInput = boundElement.is("input"),
-            isInputTypeColor = isInput && boundElement.attr("type") === "color" && inputTypeColorSupport(),
             shouldReplace = isInput && type == 'color',
             replacer = (shouldReplace) ? $(replaceInput).addClass(theme).addClass(opts.className).addClass(opts.replacerClassName) : $([]),
             offsetElement = (shouldReplace) ? replacer : boundElement,
@@ -349,13 +337,7 @@
                 boundElement.after(container).hide();
             }
             else {
-
-                var appendTo = opts.appendTo === "parent" ? boundElement.parent() : $(opts.appendTo);
-                if (appendTo.length !== 1) {
-                    appendTo = $("body");
-                }
-
-                appendTo.append(container);
+                boundElement.parent().append(container);
             }
 
             updateSelectionPaletteFromStorage();
@@ -970,11 +952,8 @@
 
             if (!flat) {
                 container.css("position", "absolute");
-                if (opts.offset) {
-                    container.offset(opts.offset);
-                } else {
-                    container.offset(getOffset(container, offsetElement));
-                }
+                container.css("left", opts.left);
+                container.css("top", opts.top);
             }
 
             updateHelperLocations();
@@ -1055,47 +1034,9 @@
             destroy: destroy,
             container: container
         };
-
         spect.id = spectrums.push(spect) - 1;
 
         return spect;
-    }
-
-    /**
-    * checkOffset - get the offset below/above and left/right element depending on screen position
-    * Thanks https://github.com/jquery/jquery-ui/blob/master/ui/jquery.ui.datepicker.js
-    */
-    function getOffset(picker, input) {
-        var extraY = 0;
-        var dpWidth = picker.outerWidth();
-        var dpHeight = picker.outerHeight();
-        var inputHeight = input.outerHeight();
-        var doc = picker[0].ownerDocument;
-        var docElem = doc.documentElement;
-        var viewWidth = docElem.clientWidth + $(doc).scrollLeft();
-        var viewHeight = docElem.clientHeight + $(doc).scrollTop();
-        var offset = input.offset();
-        var offsetLeft = offset.left;
-        var offsetTop = offset.top;
-
-        offsetTop += inputHeight;
-
-        offsetLeft -=
-            Math.min(offsetLeft, (offsetLeft + dpWidth > viewWidth && viewWidth > dpWidth) ?
-            Math.abs(offsetLeft + dpWidth - viewWidth) : 0);
-
-        offsetTop -=
-            Math.min(offsetTop, ((offsetTop + dpHeight > viewHeight && viewHeight > dpHeight) ?
-            Math.abs(dpHeight + inputHeight - extraY) : extraY));
-
-        return {
-            top: offsetTop,
-            bottom: offset.bottom,
-            left: offsetLeft,
-            right: offset.right,
-            width: offset.width,
-            height: offset.height
-        };
     }
 
     /**
@@ -1228,10 +1169,6 @@
         };
     }
 
-    function inputTypeColorSupport() {
-        return $.fn.spectrum.inputTypeColorSupport();
-    }
-
     /**
     * Define a jQuery plugin
     */
@@ -1291,26 +1228,10 @@
     $.fn.spectrum.loadOpts = {};
     $.fn.spectrum.draggable = draggable;
     $.fn.spectrum.defaults = defaultOpts;
-    $.fn.spectrum.inputTypeColorSupport = function inputTypeColorSupport() {
-        if (typeof inputTypeColorSupport._cachedResult === "undefined") {
-            var colorInput = $("<input type='color'/>")[0]; // if color element is supported, value will default to not null
-            inputTypeColorSupport._cachedResult = colorInput.type === "color" && colorInput.value !== "";
-        }
-        return inputTypeColorSupport._cachedResult;
-    };
 
     $.spectrum = { };
     $.spectrum.localization = { };
     $.spectrum.palettes = { };
-
-    $.fn.spectrum.processNativeColorInputs = function () {
-        var colorInputs = $("input[type=color]");
-        if (colorInputs.length && !inputTypeColorSupport()) {
-            colorInputs.spectrum({
-                preferredFormat: "hex6"
-            });
-        }
-    };
 
     // TinyColor v1.1.2
     // https://github.com/bgrins/TinyColor
@@ -2449,11 +2370,5 @@
 
     window.tinycolor = tinycolor;
     })();
-
-    $(function () {
-        if ($.fn.spectrum.load) {
-            $.fn.spectrum.processNativeColorInputs();
-        }
-    });
 
 });

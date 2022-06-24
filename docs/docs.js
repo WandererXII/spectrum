@@ -452,6 +452,12 @@ $("#preferredHex3").spectrum({
     showPalette: true,
     palette: [["red", "rgba(0, 255, 0, .5)", "rgb(0, 0, 255)"]]
 });
+$("#preferredHex8").spectrum({
+    preferredFormat: "hex8",
+    showInput: true,
+    showPalette: true,
+    palette: [["red", "rgba(0, 255, 0, .5)", "rgb(0, 0, 255)"]]
+});
 $("#preferredHsl").spectrum({
     preferredFormat: "hsl",
     showInput: true,
